@@ -108,7 +108,69 @@ const Brand = ( { brands = [], saveBrand, fetchLogoAttachment } ) => {
 		} );
 	};
 
-	const baseUrl = `${ newspack_aux_data.site }/${ 'no' === brand.meta._custom_url ? 'brand/' : '' }`;
+	/**
+	 * Build hierarchical brand path
+	 *
+	 * Constructs the full path including parent slugs (e.g., parent-brand/sub-brand).
+	 *
+	 * @param {Object} currentBrand - The brand object.
+	 * @param {Array} allBrands - All brands array.
+	 * @return {string} The hierarchical path.
+	 */
+	const buildHierarchicalPath = ( currentBrand, allBrands ) => {
+		if ( ! currentBrand || ! currentBrand.slug ) {
+			return '';
+		}
+
+		const pathSegments = [ currentBrand.slug ];
+		let parent = currentBrand.parent;
+
+		// Walk up the parent chain.
+		while ( parent ) {
+			const parentBrand = allBrands.find( b => b.id === parent );
+			if ( ! parentBrand ) {
+				break;
+			}
+			pathSegments.unshift( parentBrand.slug );
+			parent = parentBrand.parent;
+		}
+
+		return pathSegments.join( '/' );
+	};
+
+	/**
+	 * Build parent path (without current brand slug)
+	 *
+	 * @param {Object} currentBrand - The brand object.
+	 * @param {Array} allBrands - All brands array.
+	 * @return {string} The parent path.
+	 */
+	const buildParentPath = ( currentBrand, allBrands ) => {
+		if ( ! currentBrand || ! currentBrand.parent ) {
+			return '';
+		}
+
+		const pathSegments = [];
+		let parent = currentBrand.parent;
+
+		// Walk up the parent chain.
+		while ( parent ) {
+			const parentBrand = allBrands.find( b => b.id === parent );
+			if ( ! parentBrand ) {
+				break;
+			}
+			pathSegments.unshift( parentBrand.slug );
+			parent = parentBrand.parent;
+		}
+
+		return pathSegments.length ? pathSegments.join( '/' ) + '/' : '';
+	};
+
+	// Calculate base URL with hierarchical support.
+	const parentPath = buildParentPath( brand, brands );
+	const baseUrlPrefix = `${ newspack_aux_data.site }/${ 'no' === brand.meta._custom_url ? 'brand/' : '' }${ parentPath }`;
+	const fullBrandPath = buildHierarchicalPath( brand, brands );
+	const baseUrl = `${ newspack_aux_data.site }/${ 'no' === brand.meta._custom_url ? 'brand/' : '' }${ fullBrandPath ? fullBrandPath + '/' : '' }`;
 
 	const fetchPublicPages = () => {
 		// Limiting to 100 pages, just in case.
@@ -199,7 +261,7 @@ const Brand = ( { brands = [], saveBrand, fetchLogoAttachment } ) => {
 					onChange={ _custom_url => updateBrand( { meta: { _custom_url } } ) }
 				/>
 				<div className="newspack-brand__base-url-component">
-					<span>{ baseUrl }</span>
+					<span>{ baseUrlPrefix }</span>
 					<TextControl
 						className="newspack-brand__base-url-component__text-control"
 						label={ __( 'Slug', 'newspack-multibranded-site' ) }
@@ -209,6 +271,12 @@ const Brand = ( { brands = [], saveBrand, fetchLogoAttachment } ) => {
 						onChange={ updateBrand( 'slug' ) }
 					/>
 				</div>
+				{ parentPath && (
+					<p className="newspack-brand__url-hierarchy-note">
+						{ __( 'This brand is nested under: ', 'newspack-multibranded-site' ) }
+						<strong>{ parentPath.replace( /\/$/, '' ) }</strong>
+					</p>
+				) }
 			</Card>
 
 			<Card noBorder>
