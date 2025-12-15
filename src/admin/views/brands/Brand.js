@@ -166,11 +166,30 @@ const Brand = ( { brands = [], saveBrand, fetchLogoAttachment } ) => {
 		return pathSegments.length ? pathSegments.join( '/' ) + '/' : '';
 	};
 
+	/**
+	 * Get base URL components
+	 *
+	 * Calculates the URL structure based on custom URL setting and brand hierarchy.
+	 *
+	 * @param {Object} currentBrand - The brand object.
+	 * @param {Array} allBrands - All brands array.
+	 * @return {Object} Object with baseUrlPrefix and fullUrl.
+	 */
+	const getBaseUrlComponents = ( currentBrand, allBrands ) => {
+		const isCustomUrl = 'no' === currentBrand.meta._custom_url;
+		const baseSegment = isCustomUrl ? 'brand/' : '';
+		const parentPath = buildParentPath( currentBrand, allBrands );
+		const fullBrandPath = buildHierarchicalPath( currentBrand, allBrands );
+
+		return {
+			baseUrlPrefix: `${ newspack_aux_data.site }/${ baseSegment }${ parentPath }`,
+			fullUrl: `${ newspack_aux_data.site }/${ baseSegment }${ fullBrandPath ? fullBrandPath + '/' : '' }`,
+		};
+	};
+
 	// Calculate base URL with hierarchical support.
+	const { baseUrlPrefix, fullUrl: baseUrl } = getBaseUrlComponents( brand, brands );
 	const parentPath = buildParentPath( brand, brands );
-	const baseUrlPrefix = `${ newspack_aux_data.site }/${ 'no' === brand.meta._custom_url ? 'brand/' : '' }${ parentPath }`;
-	const fullBrandPath = buildHierarchicalPath( brand, brands );
-	const baseUrl = `${ newspack_aux_data.site }/${ 'no' === brand.meta._custom_url ? 'brand/' : '' }${ fullBrandPath ? fullBrandPath + '/' : '' }`;
 
 	const fetchPublicPages = () => {
 		// Limiting to 100 pages, just in case.

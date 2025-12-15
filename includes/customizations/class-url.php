@@ -101,7 +101,7 @@ class Url {
 	 */
 	private static function find_term_by_hierarchical_path( $path_parts, $terms ) {
 		// The last part should be the term slug we're looking for.
-		$target_slug = end( $path_parts );
+		$target_slug = $path_parts[ count( $path_parts ) - 1 ];
 		
 		foreach ( $terms as $term ) {
 			if ( $term->slug === $target_slug ) {

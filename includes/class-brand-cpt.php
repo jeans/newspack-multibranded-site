@@ -7,6 +7,8 @@
 
 namespace Newspack_Multibranded_Site;
 
+use Newspack_Multibranded_Site\Meta;
+
 /**
  * Class to handle the Brand Custom Post Type
  *
@@ -157,6 +159,7 @@ class Brand_CPT {
 	 * Handle custom post type query
 	 *
 	 * Ensures WordPress can find posts at the custom hierarchical URLs.
+	 * This method parses the request path to extract brand and post information.
 	 *
 	 * @param WP_Query $query The WP_Query instance.
 	 * @return void
@@ -167,10 +170,33 @@ class Brand_CPT {
 			return;
 		}
 
-		// Check if this is a brand-cpt query with brand context.
-		if ( isset( $query->query_vars['post_type'] ) && self::SLUG === $query->query_vars['post_type'] ) {
-			// Query is already set up correctly.
-			return;
+		// Check if we're on a 404 that might be a brand-cpt post.
+		if ( $query->is_404() ) {
+			global $wp;
+			$request_path = $wp->request;
+
+			// Check if the path contains our CPT slug.
+			if ( false !== strpos( $request_path, self::SLUG ) ) {
+				// Extract the post slug (last segment after brand-cpt/).
+				$path_parts = explode( '/', trim( $request_path, '/' ) );
+				$cpt_index = array_search( self::SLUG, $path_parts, true );
+				
+				if ( false !== $cpt_index && isset( $path_parts[ $cpt_index + 1 ] ) ) {
+					$post_slug = $path_parts[ $cpt_index + 1 ];
+					
+					// Try to find the post by slug.
+					$post = get_page_by_path( $post_slug, OBJECT, self::SLUG );
+					
+					if ( $post ) {
+						// Update query to show this post.
+						$query->set( 'post_type', self::SLUG );
+						$query->set( 'name', $post_slug );
+						$query->is_404 = false;
+						$query->is_single = true;
+						$query->is_singular = true;
+					}
+				}
+			}
 		}
 	}
 
