@@ -27,5 +27,7 @@ class TestMeta extends WP_UnitTestCase {
 		$this->assertSame( $brand_tax_cap, Newspack_Multibranded_Site\Meta\Show_Page_On_Front::get_capability() );
 		$this->assertSame( $brand_tax_cap, Newspack_Multibranded_Site\Meta\Theme_Colors::get_capability() );
 		$this->assertSame( $brand_tax_cap, Newspack_Multibranded_Site\Meta\Url::get_capability() );
+		$this->assertSame( $brand_tax_cap, Newspack_Multibranded_Site\Meta\Sports_Data_Ids::get_capability() );
+		$this->assertSame( $brand_tax_cap, Newspack_Multibranded_Site\Meta\Show_Competition_Nav::get_capability() );
 	}
 }
