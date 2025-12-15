@@ -128,6 +128,8 @@ class Taxonomy {
 		Meta\User_Primary_Brand::init();
 		Meta\Tag_Primary_Brand::init();
 		Meta\Category_Primary_Brand::init();
+		Meta\Sports_Data_Ids::init();
+		Meta\Show_Competition_Nav::init();
 	}
 
 	/**

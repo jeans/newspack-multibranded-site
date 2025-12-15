@@ -26,6 +26,10 @@ class Url {
 	/**
 	 * Parse the request
 	 *
+	 * Handles both flat and hierarchical brand URL structures:
+	 * - Flat: /brand-slug/
+	 * - Hierarchical: /parent-brand/sub-brand/
+	 *
 	 * @param WP $wp The WP object.
 	 * @return void
 	 */
@@ -47,6 +51,7 @@ class Url {
 			)
 		);
 
+		// Try exact slug match first (for flat structure).
 		foreach ( $terms as $term ) {
 			if ( $term->slug === $pagename ) {
 				if ( isset( $wp->query_vars['name'] ) ) {
@@ -60,13 +65,91 @@ class Url {
 				}
 
 				$wp->query_vars[ Taxonomy::SLUG ] = $term->slug;
-				break;
+				return;
+			}
+		}
+
+		// Try hierarchical path match (e.g., parent-brand/sub-brand).
+		$path_parts = explode( '/', trim( $pagename, '/' ) );
+		if ( count( $path_parts ) > 1 ) {
+			// Build the hierarchical path and check if it matches a term with parent.
+			$matched_term = self::find_term_by_hierarchical_path( $path_parts, $terms );
+			if ( $matched_term ) {
+				if ( isset( $wp->query_vars['name'] ) ) {
+					unset( $wp->query_vars['name'] );
+				}
+				if ( isset( $wp->query_vars['pagename'] ) ) {
+					unset( $wp->query_vars['pagename'] );
+				}
+				if ( isset( $wp->query_vars['page'] ) ) {
+					unset( $wp->query_vars['page'] );
+				}
+
+				$wp->query_vars[ Taxonomy::SLUG ] = $matched_term->slug;
 			}
 		}
 	}
 
 	/**
-	 * Make sure the term link is the slug if the custom url is set to yes
+	 * Find a term by hierarchical path
+	 *
+	 * Matches path segments like ['parent-brand', 'sub-brand'] to the corresponding term.
+	 *
+	 * @param array $path_parts Array of URL path segments.
+	 * @param array $terms Array of terms with custom URLs enabled.
+	 * @return \WP_Term|null The matched term or null.
+	 */
+	private static function find_term_by_hierarchical_path( $path_parts, $terms ) {
+		// The last part should be the term slug we're looking for.
+		$target_slug = end( $path_parts );
+		
+		foreach ( $terms as $term ) {
+			if ( $term->slug === $target_slug ) {
+				// Build the hierarchical path for this term.
+				$term_path = self::build_term_hierarchical_path( $term );
+				$term_path_parts = explode( '/', trim( $term_path, '/' ) );
+				
+				// Check if paths match.
+				if ( $term_path_parts === $path_parts ) {
+					return $term;
+				}
+			}
+		}
+		
+		return null;
+	}
+
+	/**
+	 * Build hierarchical path for a term
+	 *
+	 * Constructs the full path including parent slugs (e.g., parent-brand/sub-brand).
+	 *
+	 * @param \WP_Term $term The term to build path for.
+	 * @return string The hierarchical path.
+	 */
+	private static function build_term_hierarchical_path( $term ) {
+		$path_segments = array( $term->slug );
+		$current_term = $term;
+		
+		// Walk up the parent chain.
+		while ( $current_term->parent ) {
+			$parent = get_term( $current_term->parent, Taxonomy::SLUG );
+			if ( ! $parent || is_wp_error( $parent ) ) {
+				break;
+			}
+			array_unshift( $path_segments, $parent->slug );
+			$current_term = $parent;
+		}
+		
+		return implode( '/', $path_segments );
+	}
+
+	/**
+	 * Make sure the term link uses custom URL structure if enabled
+	 *
+	 * Supports both flat and hierarchical structures:
+	 * - Flat: /brand-slug/
+	 * - Hierarchical: /parent-brand/sub-brand/
 	 *
 	 * @param string  $termlink The term link.
 	 * @param WP_Term $term The term object.
@@ -79,7 +162,8 @@ class Url {
 
 		$custom_url = get_term_meta( $term->term_id, Url_Meta::get_key(), true );
 		if ( 'yes' === $custom_url ) {
-			$termlink = $term->slug;
+			// Build hierarchical path if term has parents.
+			$termlink = self::build_term_hierarchical_path( $term );
 		}
 
 		return $termlink;

@@ -18,6 +18,7 @@ class Initializer {
 	public static function init() {
 		Taxonomy::init();
 		Admin::init();
+		Brand_CPT::init();
 
 		Customizations\Url::init();
 		Customizations\Show_Page_On_Front::init();

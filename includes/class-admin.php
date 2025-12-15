@@ -43,6 +43,10 @@ class Admin {
 	/**
 	 * Add or redirect the admin page.
 	 *
+	 * Adds a "Sportspack" menu with two sub-menu items:
+	 * - Brand Design (links to brand configuration page)
+	 * - Brand Taxonomy (links to taxonomy editor)
+	 *
 	 * @return void
 	 */
 	public static function add_admin_menu() {
@@ -52,15 +56,36 @@ class Admin {
 			return;
 		}
 
-		// Otherwise, add the standalone admin page.
+		// Otherwise, add the standalone admin page with Sportspack menu.
 		$icon        = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjE4cHgiIGhlaWdodD0iNjE4cHgiIHZpZXdCb3g9IjAgMCA2MTggNjE4IiB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiPgogICAgPGcgaWQ9IlBhZ2UtMSIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCI+CiAgICAgICAgPHBhdGggZD0iTTMwOSwwIEM0NzkuNjU2NDk1LDAgNjE4LDEzOC4zNDQyOTMgNjE4LDMwOS4wMDE3NTkgQzYxOCw0NzkuNjU5MjI2IDQ3OS42NTY0OTUsNjE4IDMwOSw2MTggQzEzOC4zNDM1MDUsNjE4IDAsNDc5LjY1OTIyNiAwLDMwOS4wMDE3NTkgQzAsMTM4LjM0NDI5MyAxMzguMzQzNTA1LDAgMzA5LDAgWiBNMTc0LDE3MSBMMTc0LDI2Mi42NzEzNTYgTDE3NS4zMDUsMjY0IEwxNzQsMjY0IEwxNzQsNDQ2IEwyNDEsNDQ2IEwyNDEsMzMwLjkxMyBMMzUzLjk5Mjk2Miw0NDYgTDQ0NCw0NDYgTDE3NCwxNzEgWiBNNDQ0LDI5OSBMMzg5LDI5OSBMNDEwLjQ3NzYxLDMyMSBMNDQ0LDMyMSBMNDQ0LDI5OSBaIE00NDQsMjM1IEwzMjcsMjM1IEwzNDguMjQ1OTE5LDI1NyBMNDQ0LDI1NyBMNDQ0LDIzNSBaIE00NDQsMTcxIEwyNjQsMTcxIEwyODUuMjkwNTEyLDE5MyBMNDQ0LDE5MyBMNDQ0LDE3MSBaIiBpZD0iQ29tYmluZWQtU2hhcGUiIGZpbGw9IiMyQTdERTEiPjwvcGF0aD4KICAgIDwvZz4KPC9zdmc+';
+		
+		// Add main menu page "Sportspack".
 		$page_suffix = add_menu_page(
-			__( 'Multibranded site', 'newspack-multibranded-site' ),
-			__( 'Multibranded site', 'newspack-multibranded-site' ),
+			__( 'Sportspack', 'newspack-multibranded-site' ),
+			__( 'Sportspack', 'newspack-multibranded-site' ),
 			'manage_options',
 			self::MULTI_BRANDED_PAGE_SLUG,
 			array( __CLASS__, 'render_page' ),
 			$icon
+		);
+
+		// Add "Brand Design" submenu.
+		add_submenu_page(
+			self::MULTI_BRANDED_PAGE_SLUG,
+			__( 'Brand Design', 'newspack-multibranded-site' ),
+			__( 'Brand Design', 'newspack-multibranded-site' ),
+			'manage_options',
+			self::MULTI_BRANDED_PAGE_SLUG,
+			array( __CLASS__, 'render_page' )
+		);
+
+		// Add "Brand Taxonomy" submenu.
+		add_submenu_page(
+			self::MULTI_BRANDED_PAGE_SLUG,
+			__( 'Brand Taxonomy', 'newspack-multibranded-site' ),
+			__( 'Brand Taxonomy', 'newspack-multibranded-site' ),
+			'manage_options',
+			'edit-tags.php?taxonomy=' . Taxonomy::SLUG
 		);
 
 		add_action( 'load-' . $page_suffix, array( __CLASS__, 'admin_init' ) );
