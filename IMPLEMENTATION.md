@@ -229,14 +229,14 @@ All changes maintain full backward compatibility:
 
 **Files**: 
 - `includes/class-taxonomy.php`
-- `includes/meta/class-collection-primary-brand.php`
+- `includes/meta/class-post-primary-brand.php`
 
 The plugin now supports branding for Newspack Collections custom post type:
 
 **Features**:
 - Brand taxonomy automatically applies to collections when Newspack Collections plugin is active
 - Collections can be assigned to one or multiple brands
-- Primary brand meta field for collections with multiple brand assignments
+- Primary brand meta field for collections with multiple brand assignments (via Post_Primary_Brand)
 - Automatic brand detection based on assigned brands, primary brand, or category association
 - Full REST API support for managing collection brands
 
@@ -250,7 +250,7 @@ if ( function_exists( 'newspack_collections_get_post_type_slug' ) ) {
 }
 ```
 
-2. **Collection Primary Brand Meta**: A dedicated meta class `Collection_Primary_Brand` handles the primary brand assignment for collections, following the same pattern as post primary brands.
+2. **Unified Primary Brand Meta**: The `Post_Primary_Brand` meta class now handles all post types (posts, pages, popups, and collections) by using `Taxonomy::get_post_types()` instead of the static `POST_TYPES` constant. This ensures that primary brand functionality is automatically available for all supported post types.
 
 3. **Brand Detection Logic**: Collections support all brand detection methods:
    - Single brand assignment (automatic)
