@@ -225,6 +225,67 @@ All changes maintain full backward compatibility:
 - No additional queries on regular page loads
 - Meta field queries use WordPress caching
 
+### 6. Newspack Collections Branding Support
+
+**Files**: 
+- `includes/class-taxonomy.php`
+- `includes/meta/class-post-primary-brand.php`
+
+The plugin now supports branding for Newspack Collections custom post type:
+
+**Features**:
+- Brand taxonomy automatically applies to collections when Newspack Collections plugin is active
+- Collections can be assigned to one or multiple brands
+- Primary brand meta field for collections with multiple brand assignments (via Post_Primary_Brand)
+- Automatic brand detection based on assigned brands, primary brand, or category association
+- Full REST API support for managing collection brands
+
+**Key Implementation Details**:
+
+1. **Dynamic Post Type Registration**: The brand taxonomy dynamically includes the collections post type when the `newspack_collections_get_post_type_slug()` function is available:
+
+```php
+if ( function_exists( 'newspack_collections_get_post_type_slug' ) ) {
+    $post_types[] = newspack_collections_get_post_type_slug();
+}
+```
+
+2. **Unified Primary Brand Meta**: The `Post_Primary_Brand` meta class now handles all post types (posts, pages, popups, and collections) by using `Taxonomy::get_post_types()` instead of the static `POST_TYPES` constant. This ensures that primary brand functionality is automatically available for all supported post types.
+
+3. **Brand Detection Logic**: Collections support all brand detection methods:
+   - Single brand assignment (automatic)
+   - Primary brand from `_primary_brand` meta field
+   - Brand inheritance from category associations
+
+4. **Frontend Integration**: All existing customizations (body classes, logos, theme colors, menus) automatically work with branded collections through the `Taxonomy::get_current()` method.
+
+**Usage Examples**:
+
+```php
+// Create a branded collection
+$collection_id = wp_insert_post([
+    'post_title' => 'Featured Stories',
+    'post_type'  => newspack_collections_get_post_type_slug(),
+    'post_status' => 'publish',
+]);
+
+// Assign to brand
+wp_set_post_terms( $collection_id, $brand_term_id, 'brand' );
+
+// Set primary brand for multi-brand collections
+update_post_meta( $collection_id, '_primary_brand', $primary_brand_id );
+
+// Get current brand for a collection
+$brand = Newspack_Multibranded_Site\Taxonomy::get_current_brand_for_post( $collection_id );
+```
+
+**Testing**: Comprehensive unit tests in `tests/unit-tests/test-collection-branding.php` verify:
+- Brand assignment to collections
+- Primary brand functionality
+- Category-based brand fallback
+- REST API meta registration
+- Integration with existing brand detection logic
+
 ## Future Enhancements
 
 Potential areas for future development:
@@ -234,6 +295,7 @@ Potential areas for future development:
 4. Integration with specific sports data providers
 5. Bulk import tools for sports data
 6. Advanced filtering by sports data provider
+7. Collection-specific branding UI in the Newspack Collections editor
 
 ## Migration Notes
 

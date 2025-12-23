@@ -46,7 +46,7 @@ class Post_Primary_Brand extends Meta {
 	 * @return array The list of post type slugs.
 	 */
 	public static function get_post_types() {
-		return Taxonomy::POST_TYPES;
+		return Taxonomy::get_post_types();
 	}
 
 	/**
