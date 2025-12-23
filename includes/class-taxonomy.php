@@ -77,6 +77,9 @@ class Taxonomy {
 		if ( class_exists( 'Newspack_Popups' ) ) {
 			$post_types[] = \Newspack_Popups::NEWSPACK_POPUPS_CPT;
 		}
+		if ( function_exists( 'newspack_collections_get_post_type_slug' ) ) {
+			$post_types[] = newspack_collections_get_post_type_slug();
+		}
 		return $post_types;
 	}
 
@@ -122,6 +125,7 @@ class Taxonomy {
 		Meta\Url::init();
 		Meta\Show_Page_On_Front::init();
 		Meta\Post_Primary_Brand::init();
+		Meta\Collection_Primary_Brand::init();
 		Meta\Logo::init();
 		Meta\Theme_Colors::init();
 		Meta\Menus::init();
@@ -148,7 +152,7 @@ class Taxonomy {
 
 		$post = $post_or_post_id instanceof \WP_Post ? $post_or_post_id : get_post( $post_or_post_id );
 
-		if ( ! in_array( $post->post_type, self::POST_TYPES, true ) ) {
+		if ( ! in_array( $post->post_type, self::get_post_types(), true ) ) {
 			return;
 		}
 
